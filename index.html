@@ -20,11 +20,12 @@
         data.addColumn('number', 'Percent Complete');
         data.addColumn('string', 'Dependencies');
 
-        // === Year 1: Foundations & Lightweight Prototype (with buffers) ===
+        // === Year 1: Foundations & Lightweight Prototype (with buffers & survey paper) ===
         data.addRows([
           ['J1', 'Literature Review (FL, IDS, IoMT, XAI)', 'Research', toDate(2026,1,1), toDate(2026,2,28), null, 100, null],
-          ['J2', 'Problem Definition & Dataset Selection', 'Research', toDate(2026,2,15), toDate(2026,4,15), null, 90, 'J1'],
-          ['J3', 'Architecture Design of Lightweight FL-IDS', 'Design', toDate(2026,4,1), toDate(2026,6,15), null, 75, 'J2'],
+          ['J1a', 'Survey Paper Draft & Submission (State of the Art on FL-based IDS for IoMT)', 'Publication', toDate(2026,2,20), toDate(2026,4,15), null, 0, 'J1'],
+          ['J2', 'Problem Definition & Dataset Selection', 'Research', toDate(2026,3,15), toDate(2026,4,30), null, 90, 'J1a'],
+          ['J3', 'Architecture Design of Lightweight FL-IDS', 'Design', toDate(2026,4,15), toDate(2026,6,15), null, 75, 'J2'],
           ['J4', 'Prototype v1 Implementation', 'Development', toDate(2026,6,1), toDate(2026,8,15), null, 60, 'J3'],
           ['J5', 'Preliminary Evaluation & Risk Buffer', 'Evaluation', toDate(2026,7,15), toDate(2026,10,15), null, 50, 'J4'],
           ['J6', 'Year 1 Report + Conference Paper #1 Draft', 'Publication', toDate(2026,10,1), toDate(2026,12,31), null, 40, 'J5'],
@@ -55,12 +56,12 @@
 
         // === Color mapping for each resource type ===
         var resourceColors = {
-          'Research': '#2196F3',     // Blue
-          'Design': '#673AB7',       // Purple
-          'Development': '#009688',  // Teal
-          'Evaluation': '#757575',   // Gray
-          'Publication': '#4CAF50',  // Green
-          'Milestone': '#FF9800'     // Orange
+          'Research': '#2196F3',
+          'Design': '#673AB7',
+          'Development': '#009688',
+          'Evaluation': '#757575',
+          'Publication': '#4CAF50',
+          'Milestone': '#FF9800'
         };
 
         var colors = Object.values(resourceColors);
@@ -68,7 +69,7 @@
 
         // === Gantt chart options ===
         var options = {
-          height: 1100,
+          height: 1150,
           gantt: {
             trackHeight: 30,
             barCornerRadius: 4,
@@ -93,7 +94,7 @@
   </head>
 
   <body>
-    <h2>PhD 3-Year Gantt Plan : Toward Lightweight, Secure, and Explainable Federated Learning for Intrusion Detection in the IoMT Network — Wadie Kadri — Supervisor : Maha Charfeddine </h2>
+    <h2>PhD 3-Year Gantt Plan: Toward Lightweight, Secure, and Explainable Federated Learning for Intrusion Detection in the IoMT Network — Wadie Kadri — Supervisor: Maha Charfeddine</h2>
     <div id="chart_div"></div>
 
     <!-- Legend & Strategic Highlights -->
@@ -109,15 +110,15 @@
     <br><br>
     <b>Strategic Highlights & Annotations:</b>
     <ul style="font-size:13px; line-height:1.4;">
+      <li><b>New Deliverable:</b> Added <i>Survey Paper</i> (J1a) after literature review to produce an early publication and consolidate the research foundation.</li>
       <li><b>Risk Buffers:</b> for evaluation & integration phases to account for failed experiments or dataset limitations.</li>
-      <li><b>Parallel Tracks:</b> Continuous monitoring of research & publications(runs across all 3 years to stay updated on latest findings.</li>
-      <li><b>Critical Path in orange:</b> Sequential dependencies: Literature → Problem → Design → Prototype → Evaluation → Publication.</li>
+      <li><b>Parallel Tracks:</b> Continuous monitoring of research & publications (J19) runs across all 3 years to stay updated on latest findings.</li>
+      <li><b>Critical Path in Orange:</b> Sequential dependencies: Literature → Survey Paper → Problem → Design → Prototype → Evaluation → Publication.</li>
       <li><b>Safe Overlaps:</b> Experiments and monitoring tasks overlap strategically to reduce idle periods and optimize timeline efficiency.</li>
-      <li><b>Continuous Research Monitoring:</b> Ensures my thesis remains aligned with evolving Q1/Q2-level research and avoids obsolescence.</li>
-      
+      <li><b>Continuous Research Monitoring:</b> Ensures thesis remains aligned with evolving Q1/Q2-level research and avoids obsolescence.</li>
     </ul>
-	
-	<!-- KPIs Table -->
+
+    <!-- KPIs Table -->
     <br><br>
     <b>Key Performance Indicators (KPIs) per Year:</b>
     <table border="1" cellpadding="6" cellspacing="0" style="border-collapse:collapse; font-size:13px; width:100%;">
@@ -131,30 +132,31 @@
       </thead>
       <tbody>
         <tr>
-          <td>2026 </td>
+          <td>2026</td>
           <td>Foundations & Lightweight Prototype</td>
           <td>
-            • Prototype v1 performance ≥ "to define" accuracy<br>
+            • Survey Paper published (state of the art)<br>
+            • Prototype v1 performance ≥ “to define” accuracy<br>
             • Dataset readiness and preprocessing complete<br>
-            • First conference paper draft completed
+            • Conference Paper 1 draft completed
           </td>
-          <td>Literature review, dataset selection, prototype v1, Conf Paper 1 Draft, Yearly Review</td>
+          <td>Literature review, Survey Paper, dataset selection, prototype v1, Conf Paper 1 Draft, Yearly Review</td>
         </tr>
         <tr>
-          <td>2027 </td>
+          <td>2027</td>
           <td>Secure & Explainable FL</td>
           <td>
-            • Robustness improvement ≥ "to define" against poisoning attacks<br>
-            • Interpretability / XAI score ≥ "to define"<br>
+            • Robustness improvement ≥ “to define” against poisoning attacks<br>
+            • Interpretability / XAI score ≥ “to define”<br>
             • Conference Paper 2 submitted on time
           </td>
           <td>Robust aggregation module, Secure FL integration, XAI module, Conf Paper 2, Mid-Term Evaluation, Architecture</td>
         </tr>
         <tr>
-          <td>2028 </td>
+          <td>2028</td>
           <td>Validation, Dissemination & Continuous Monitoring</td>
           <td>
-            • Full lightweight, secure and explainable FL-IDS for IoMT evaluation completed<br>
+            • Full lightweight, secure and explainable FL-IDS evaluation completed<br>
             • Benchmarking against SOTA models<br>
             • Q2 Journal article submitted<br>
             • Thesis manuscript ready for defense
@@ -163,6 +165,5 @@
         </tr>
       </tbody>
     </table>
-	
   </body>
 </html>
