@@ -1,124 +1,224 @@
+<!doctype html>
 <html>
   <head>
+    <meta charset="utf-8">
+    <title>PhD Gantt Master Dashboard — Wadie Kadri</title>
     <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
-    <script type="text/javascript">
-      google.charts.load('current', {'packages':['gantt']});
-      google.charts.setOnLoadCallback(drawChart);
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
-      function toDate(year, month, day) {
-        return new Date(year, month - 1, day);
+    <script type="text/javascript">
+      google.charts.load('current', { packages: ['gantt'] });
+      let chartSets = {};
+
+      function toDate(y,m,d){ return new Date(y, m-1, d); }
+
+      google.charts.setOnLoadCallback(init);
+
+      function init(){
+        chartSets = buildChartData();
+        drawAllCharts();
       }
 
-      function drawChart() {
-        var data = new google.visualization.DataTable();
-        data.addColumn('string', 'Task ID');
-        data.addColumn('string', 'Task Name');
-        data.addColumn('string', 'Resource');
-        data.addColumn('date', 'Start Date');
-        data.addColumn('date', 'End Date');
-        data.addColumn('number', 'Duration');
-        data.addColumn('number', 'Percent Complete');
-        data.addColumn('string', 'Dependencies');
-
-        // === Year 1: Foundations & Lightweight Prototype (with buffers & survey paper) ===
-        data.addRows([
-          ['J1', 'Literature Review (FL, IDS, IoMT, XAI)', 'Research', toDate(2026,1,1), toDate(2026,2,28), null, 100, null],
-          ['J1a', 'Survey Paper Draft & Submission (State of the Art on FL-based IDS for IoMT)', 'Publication', toDate(2026,2,20), toDate(2026,4,15), null, 0, 'J1'],
-          ['J2', 'Problem Definition & Dataset Selection', 'Research', toDate(2026,3,15), toDate(2026,4,30), null, 90, 'J1a'],
-          ['J3', 'Architecture Design of Lightweight FL-IDS', 'Design', toDate(2026,4,15), toDate(2026,6,15), null, 75, 'J2'],
-          ['J4', 'Prototype v1 Implementation', 'Development', toDate(2026,6,1), toDate(2026,8,15), null, 60, 'J3'],
-          ['J5', 'Preliminary Evaluation & Risk Buffer', 'Evaluation', toDate(2026,7,15), toDate(2026,10,15), null, 50, 'J4'],
-          ['J6', 'Year 1 Report + Conference Paper #1 Draft', 'Publication', toDate(2026,10,1), toDate(2026,12,31), null, 40, 'J5'],
-          ['J6a', 'Yearly Committee Review / Feedback', 'Milestone', toDate(2026,12,15), toDate(2026,12,31), null, 0, 'J6']
-        ]);
-
-        // === Year 2: Secure & Explainable FL (with overlapping & KPIs) ===
-        data.addRows([
-          ['J7', 'Robust Aggregation & Poisoning Defense Design', 'Development', toDate(2027,1,1), toDate(2027,2,28), null, 0, 'J6a'],
-          ['J8', 'Secure FL Integration & Initial Experiments', 'Development', toDate(2027,2,15), toDate(2027,4,15), null, 0, 'J7'],
-          ['J9', 'Explainable Module (XAI) Integration', 'Development', toDate(2027,4,1), toDate(2027,6,15), null, 0, 'J8'],
-          ['J10', 'Robustness & Interpretability Experiments', 'Evaluation', toDate(2027,5,15), toDate(2027,8,15), null, 0, 'J9'],
-          ['J11', 'Conference Paper #2 Drafting & Submission', 'Publication', toDate(2027,7,1), toDate(2027,10,1), null, 0, 'J10'],
-          ['J12', 'Mid-Term Doctoral Evaluation', 'Milestone', toDate(2027,10,15), toDate(2027,11,15), null, 0, 'J11'],
-          ['J12a', 'Model Architecture & Documentation', 'Milestone', toDate(2027,11,16), toDate(2027,12,31), null, 0, 'J12']
-        ]);
-
-        // === Year 3: Validation, Dissemination & Continuous Monitoring ===
-        data.addRows([
-          ['J13', 'Full Experiments on IoMT & Healthcare Data', 'Evaluation', toDate(2028,1,1), toDate(2028,3,31), null, 0, 'J12a'],
-          ['J14', 'Result Analysis, Benchmarking & Continuous Research Monitoring', 'Research', toDate(2028,2,1), toDate(2028,4,30), null, 0, 'J13'],
-          ['J15', 'Comparison with State-of-the-Art Models', 'Research', toDate(2028,4,1), toDate(2028,6,15), null, 0, 'J14'],
-          ['J16', 'Q2 Journal Article Writing & Submission', 'Publication', toDate(2028,6,1), toDate(2028,8,15), null, 0, 'J15'],
-          ['J17', 'Thesis Manuscript Preparation', 'Publication', toDate(2028,8,1), toDate(2028,10,31), null, 0, 'J16'],
-          ['J18', 'PhD Defense Preparation & Presentation', 'Milestone', toDate(2028,11,1), toDate(2028,12,31), null, 0, 'J17'],
-          ['J19', 'Continuous Monitoring of New Research & Publications', 'Research', toDate(2026,1,1), toDate(2028,12,31), null, 0, null]
-        ]);
-
-        // === Color mapping for each resource type ===
-        var resourceColors = {
-          'Research': '#2196F3',
-          'Design': '#673AB7',
-          'Development': '#009688',
-          'Evaluation': '#757575',
-          'Publication': '#4CAF50',
-          'Milestone': '#FF9800'
+      function buildChartData(){
+        const colors = {
+          Research:'#2196F3',
+          Design:'#4CAF50',
+          Development:'#009688',
+          Evaluation:'#757575',
+          Publication:'#673AB7',
+          Milestone:'#FF9800'
+        };
+        const baseOptions = {
+          trackHeight:30,
+          barCornerRadius:4,
+          criticalPathEnabled:true,
+          criticalPathStyle:{stroke:'#e64a19',strokeWidth:5},
+          labelStyle:{fontName:'Arial',fontSize:13},
+          innerGridTrack:{fill:'#f9f9f9'},
+          innerGridDarkTrack:{fill:'#eeeeee'},
+          palette: Object.keys(colors).map(k => ({ color: colors[k], dark: colors[k], light: colors[k], from: k }))
         };
 
-        var colors = Object.values(resourceColors);
-        var uniqueResources = Object.keys(resourceColors);
+        // === 12-week plan (Feb 1 – May 12, 2026) ===
+        const d12 = new google.visualization.DataTable();
+        d12.addColumn('string','Task ID');
+        d12.addColumn('string','Task Name');
+        d12.addColumn('string','Resource');
+        d12.addColumn('date','Start Date');
+        d12.addColumn('date','End Date');
+        d12.addColumn('number','Duration');
+        d12.addColumn('number','Percent Complete');
+        d12.addColumn('string','Dependencies');
+        d12.addRows([
+          ['P1','Scope Definition & Search Strategy','Research', toDate(2026,2,1), toDate(2026,2,8), null, 100, null],
+          ['P2','Literature Discovery & Source Evaluation','Research', toDate(2026,2,5), toDate(2026,2,22), null, 80, 'P1'],
+          ['P3','Visual Mapping','Research', toDate(2026,2,18), toDate(2026,3,2), null, 60, 'P2'],
+          ['P4','Deep Reading & Extraction','Research', toDate(2026,2,25), toDate(2026,3,18), null, 50, 'P3'],
+          ['P5','Taxonomy & Survey Structure Definition','Research', toDate(2026,3,15), toDate(2026,3,29), null, 40, 'P4'],
+          ['P6','Drafting Core Sections','Publication', toDate(2026,3,25), toDate(2026,4,8), null, 30, 'P5'],
+          ['P7','Table & Figure Generation','Research', toDate(2026,4,1), toDate(2026,4,8), null, 25, 'P6'],
+          ['P8','Critical Analysis & Gap Identification','Research', toDate(2026,4,5), toDate(2026,4,20), null, 20, 'P7'],
+          ['P9','First Full Draft','Publication', toDate(2026,4,15), toDate(2026,4,30), null, 10, 'P8'],
+          ['P10','Peer Review & Supervisor Feedback','Milestone', toDate(2026,4,30), toDate(2026,5,8), null, 0, 'P9'],
+          ['P11','Final Revision, Formatting, & Submission','Publication', toDate(2026,5,5), toDate(2026,5,12), null, 0, 'P10'],
+          ['P12','Continuous Literature & Research Monitoring','Research', toDate(2026,2,1), toDate(2026,5,12), null, 0, null]
+        ]);
 
-        // === Gantt chart options ===
-        var options = {
-          height: 1150,
-          gantt: {
-            trackHeight: 30,
-            barCornerRadius: 4,
-            criticalPathEnabled: true,
-            criticalPathStyle: { stroke: '#e64a19', strokeWidth: 5 },
-            labelStyle: { fontName: "Arial", fontSize: 13 },
-            innerGridTrack: { fill: '#f9f9f9' },
-            innerGridDarkTrack: { fill: '#eeeeee' },
-            palette: colors.map((color, i) => ({
-              color: color,
-              dark: color,
-              light: color,
-              from: uniqueResources[i]
-            }))
-          }
-        };
+        // === Year 1 (aligned with 12-week plan) ===
+        const dY1 = new google.visualization.DataTable();
+        dY1.addColumn('string','Task ID');
+        dY1.addColumn('string','Task Name');
+        dY1.addColumn('string','Resource');
+        dY1.addColumn('date','Start Date');
+        dY1.addColumn('date','End Date');
+        dY1.addColumn('number','Duration');
+        dY1.addColumn('number','Percent Complete');
+        dY1.addColumn('string','Dependencies');
+        dY1.addRows([
+          ['Y1','Literature Review (incl. Survey Paper)','Research', toDate(2026,2,1), toDate(2026,5,12), null, 100, null],
+          ['Y2','Problem Definition & Dataset Selection','Research', toDate(2026,3,20), toDate(2026,5,10), null, 90, 'Y1'],
+          ['Y3','Architecture Design of Lightweight FL-IDS','Design', toDate(2026,5,5), toDate(2026,7,5), null, 75, 'Y2'],
+          ['Y4','Prototype v1 Implementation','Development', toDate(2026,6,25), toDate(2026,9,5), null, 60, 'Y3'],
+          ['Y5','Preliminary Evaluation & Risk Buffer','Evaluation', toDate(2026,8,15), toDate(2026,11,15), null, 50, 'Y4'],
+          ['Y6','Year 1 Report + Conference Paper #1 Draft','Publication', toDate(2026,10,10), toDate(2026,12,31), null, 40, 'Y5'],
+          ['Y6a','Yearly Committee Review / Feedback','Milestone', toDate(2026,12,15), toDate(2026,12,31), null, 0, 'Y6']
+        ]);
 
-        var chart = new google.visualization.Gantt(document.getElementById('chart_div'));
-        chart.draw(data, options);
+        // === 3-Year Plan ===
+        const d3 = new google.visualization.DataTable();
+        d3.addColumn('string','Task ID');
+        d3.addColumn('string','Task Name');
+        d3.addColumn('string','Resource');
+        d3.addColumn('date','Start Date');
+        d3.addColumn('date','End Date');
+        d3.addColumn('number','Duration');
+        d3.addColumn('number','Percent Complete');
+        d3.addColumn('string','Dependencies');
+        d3.addRows([
+          // Year 1
+          ['J1','Literature Review','Research', toDate(2026,2,1), toDate(2026,3,15), null, 100, null],
+          ['J1a','Survey Paper Draft & Submission','Publication', toDate(2026,3,15), toDate(2026,5,12), null, 0, 'J1'],
+          ['J2','Problem Definition & Dataset Selection','Research', toDate(2026,4,1), toDate(2026,5,10), null, 90, 'J1a'],
+          ['J3','Architecture Design of Lightweight FL-IDS','Design', toDate(2026,5,5), toDate(2026,7,5), null, 75, 'J2'],
+          ['J4','Prototype v1 Implementation','Development', toDate(2026,6,25), toDate(2026,9,5), null, 60, 'J3'],
+          ['J5','Preliminary Evaluation & Risk Buffer','Evaluation', toDate(2026,8,15), toDate(2026,11,15), null, 50, 'J4'],
+          ['J6','Year 1 Report + Conference Paper #1 Draft','Publication', toDate(2026,10,10), toDate(2026,12,31), null, 40, 'J5'],
+          ['J6a','Yearly Committee Review / Feedback','Milestone', toDate(2026,12,15), toDate(2026,12,31), null, 0, 'J6'],
+
+          // Year 2
+          ['J7','Robust Aggregation & Poisoning Defense Design','Development', toDate(2027,1,1), toDate(2027,2,28), null, 0, 'J6a'],
+          ['J8','Secure FL Integration & Initial Experiments','Development', toDate(2027,2,15), toDate(2027,4,15), null, 0, 'J7'],
+          ['J9','Explainable Module (XAI) Integration','Development', toDate(2027,4,1), toDate(2027,6,15), null, 0, 'J8'],
+          ['J10','Robustness & Interpretability Experiments','Evaluation', toDate(2027,5,15), toDate(2027,8,15), null, 0, 'J9'],
+          ['J11','Conference Paper #2 Drafting & Submission','Publication', toDate(2027,7,1), toDate(2027,10,1), null, 0, 'J10'],
+          ['J12','Mid-Term Doctoral Evaluation','Milestone', toDate(2027,10,15), toDate(2027,11,15), null, 0, 'J11'],
+          ['J12a','Model Architecture & Documentation','Milestone', toDate(2027,11,16), toDate(2027,12,31), null, 0, 'J12'],
+
+          // Year 3
+          ['J13','Full Experiments on IoMT & Healthcare Data','Evaluation', toDate(2028,1,1), toDate(2028,3,31), null, 0, 'J12a'],
+          ['J14','Result Analysis, Benchmarking & Continuous Research Monitoring','Research', toDate(2028,2,1), toDate(2028,4,30), null, 0, 'J13'],
+          ['J15','Comparison with State-of-the-Art Models','Research', toDate(2028,4,1), toDate(2028,6,15), null, 0, 'J14'],
+          ['J16','Q2 Journal Article Writing & Submission','Publication', toDate(2028,6,1), toDate(2028,8,15), null, 0, 'J15'],
+          ['J17','Thesis Manuscript Preparation','Publication', toDate(2028,8,1), toDate(2028,10,31), null, 0, 'J16'],
+          ['J18','PhD Defense Preparation & Presentation','Milestone', toDate(2028,11,1), toDate(2028,12,31), null, 0, 'J17'],
+
+          // Continuous monitoring
+          ['J19','Continuous Monitoring of New Research & Publications','Research', toDate(2026,2,1), toDate(2028,12,31), null, 0, null]
+        ]);
+
+        return { d12, dY1, d3, baseOptions };
+      }
+
+      function drawAllCharts(){
+        const c12 = new google.visualization.Gantt(document.getElementById('chart_12w'));
+        const cy1 = new google.visualization.Gantt(document.getElementById('chart_y1'));
+        const c3 = new google.visualization.Gantt(document.getElementById('chart_3y'));
+
+        c12.draw(chartSets.d12, { height: 700, gantt: chartSets.baseOptions });
+        cy1.draw(chartSets.dY1, { height: 700, gantt: chartSets.baseOptions });
+        c3.draw(chartSets.d3, { height: 1150, gantt: chartSets.baseOptions });
+      }
+
+      function showTab(tabId){
+        document.querySelectorAll('.tab-content').forEach(el=>el.style.display='none');
+        document.getElementById(tabId).style.display='block';
+        document.querySelectorAll('.tab-button').forEach(b=>b.classList.remove('active'));
+        document.querySelector(`[data-tab='${tabId}']`).classList.add('active');
+        setTimeout(()=> drawAllCharts(), 150);
+      }
+
+      async function exportPDF(){
+        const { jsPDF } = window.jspdf;
+        const pdf = new jsPDF({ orientation:'landscape', unit:'pt', format:'a3' });
+        const section = document.getElementById('pdf_section');
+        const canvas = await html2canvas(section, { scale: 2 });
+        const img = canvas.toDataURL('image/png');
+        const pdfW = pdf.internal.pageSize.getWidth();
+        const pdfH = (canvas.height * pdfW) / canvas.width;
+        pdf.addImage(img, 'PNG', 0, 0, pdfW, pdfH);
+        pdf.save('PhD_Gantt_Plan_WadieKadri.pdf');
       }
     </script>
+
+    <style>
+      body{font-family:Arial, sans-serif; margin:20px;}
+      h1,h2{color:#1A237E;}
+      .tabs{margin-bottom:12px;}
+      .tab-button{padding:10px 18px;border:1px solid #ccc;background:#f4f4f4;margin-right:6px;border-radius:5px;cursor:pointer;}
+      .tab-button.active{background:#4CAF50;color:#fff;border-color:#4CAF50;}
+      button.export{float:right;background:#4CAF50;color:#fff;border:none;padding:10px 16px;border-radius:6px;cursor:pointer;}
+      button.export:hover{background:#388E3C;}
+      .legend span{margin-right:10px;}
+      table.kpi{border-collapse:collapse;width:100%;font-size:13px;}
+      table.kpi th, table.kpi td{padding:8px;border:1px solid #ddd;}
+      table.kpi thead{background:#f0f0f0;}
+      .notes{font-size:13px;line-height:1.45;margin-top:10px;}
+    </style>
   </head>
 
   <body>
-    <h2>PhD 3-Year Gantt Plan: Toward Lightweight, Secure, and Explainable Federated Learning for Intrusion Detection in the IoMT Network — Wadie Kadri — Supervisor: Maha Charfeddine</h2>
-    <div id="chart_div"></div>
+    <h1>PhD Gantt Master Dashboard — Wadie Kadri</h1>
+    <p><strong>Supervisor:</strong> Maha Charfeddine &nbsp; | &nbsp; <strong>Thesis:</strong> Toward Lightweight, Secure, and Explainable Federated Learning for Intrusion Detection in IoMT Networks</p>
 
-    <!-- Legend & Strategic Highlights -->
-    <br>
-    <b>Legend:</b> 
-    <span style="color:#2196F3">■ Research</span> &nbsp;
-    <span style="color:#673AB7">■ Design</span> &nbsp;
-    <span style="color:#009688">■ Development</span> &nbsp;
-    <span style="color:#757575">■ Evaluation</span> &nbsp;
-    <span style="color:#4CAF50">■ Publication</span> &nbsp;
-    <span style="color:#FF9800">■ Milestone</span>
+    <div class="tabs">
+      <button class="tab-button active" data-tab="tab_12w" onclick="showTab('tab_12w')">📘 12-Week Survey Plan</button>
+      <button class="tab-button" data-tab="tab_y1" onclick="showTab('tab_y1')">🎯 Year 1 Plan</button>
+      <button class="tab-button" data-tab="tab_3y" onclick="showTab('tab_3y')">🎓 3-Year Plan (Full)</button>
+      <button class="export" onclick="exportPDF()">📄 Export A3 PDF</button>
+    </div>
 
-    <br><br>
-    <b>Strategic Highlights & Annotations:</b>
-    <ul style="font-size:13px; line-height:1.4;">
-      <li><b>New Deliverable:</b> Added <i>Survey Paper</i> (J1a) after literature review to produce an early publication and consolidate the research foundation.</li>
-      <li><b>Risk Buffers:</b> for evaluation & integration phases to account for failed experiments or dataset limitations.</li>
-      <li><b>Parallel Tracks:</b> Continuous monitoring of research & publications (J19) runs across all 3 years to stay updated on latest findings.</li>
-      <li><b>Critical Path in Orange:</b> Sequential dependencies: Literature → Survey Paper → Problem → Design → Prototype → Evaluation → Publication.</li>
-      <li><b>Safe Overlaps:</b> Experiments and monitoring tasks overlap strategically to reduce idle periods and optimize timeline efficiency.</li>
-      <li><b>Continuous Research Monitoring:</b> Ensures thesis remains aligned with evolving Q1/Q2-level research and avoids obsolescence.</li>
-    </ul>
+    <div id="pdf_section">
+      <!-- 12-week tab -->
+      <div id="tab_12w" class="tab-content" style="display:block">
+        <h2>📘 Optimized AI-Enhanced Literature Review & Survey Paper Plan (Feb–May 2026)</h2>
+        <div id="chart_12w" style="width:100%;"></div>
+        <p class="notes"><strong>Tools & Flow:</strong> Scite, Consensus, R Discovery for discovery; Research Rabbit / Litmaps / Connected Papers for mapping; Scholarcy / SciSpace Copilot / NotebookLM for extraction; Elicit & Napkin AI for tables/figures; Jenni AI + Overleaf for drafting. Continuous monitoring (P12) runs throughout.</p>
+      </div>
 
-    <!-- KPIs Table -->
+      <!-- Year 1 tab -->
+      <div id="tab_y1" class="tab-content" style="display:none">
+        <h2>🎯 Year 1 — Foundations & Lightweight Prototype (2026)</h2>
+        <div id="chart_y1" style="width:100%;"></div>
+        <p class="notes">Year 1 integrates the Survey Paper deliverable (J1a) from the 12-week phase, then transitions to problem definition, architecture design, prototype implementation and preliminary evaluation. Buffer periods included for failed experiments and dataset issues.</p>
+      </div>
+
+      <!-- 3-year full tab -->
+      <div id="tab_3y" class="tab-content" style="display:none">
+        <h2>🎓 Full 3-Year Plan (2026–2028) — includes Survey Paper (J1a) & Continuous Monitoring (J19)</h2>
+        <div id="chart_3y" style="width:100%;"></div>
+
+        <h3>Legend</h3>
+        <div class="legend">
+          <span style="color:#2196F3">■ Research</span>
+          <span style="color:#4CAF50">■ Design</span>
+          <span style="color:#009688">■ Development</span>
+          <span style="color:#757575">■ Evaluation</span>
+          <span style="color:#673AB7">■ Publication</span>
+          <span style="color:#FF9800">■ Milestone</span>
+        </div>
+
+        <!-- KPIs Table -->
     <br><br>
     <b>Key Performance Indicators (KPIs) per Year:</b>
     <table border="1" cellpadding="6" cellspacing="0" style="border-collapse:collapse; font-size:13px; width:100%;">
@@ -165,173 +265,3 @@
         </tr>
       </tbody>
     </table>
-  </body>
-</html>
-<html>
-  <head>
-    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
-    <script type="text/javascript">
-      google.charts.load('current', {'packages':['gantt']});
-      google.charts.setOnLoadCallback(drawChart);
-
-      function toDate(year, month, day) {
-        return new Date(year, month - 1, day);
-      }
-
-      function drawChart() {
-        var data = new google.visualization.DataTable();
-        data.addColumn('string', 'Task ID');
-        data.addColumn('string', 'Task Name');
-        data.addColumn('string', 'Resource');
-        data.addColumn('date', 'Start Date');
-        data.addColumn('date', 'End Date');
-        data.addColumn('number', 'Duration');
-        data.addColumn('number', 'Percent Complete');
-        data.addColumn('string', 'Dependencies');
-
-        // === Year 1: Foundations & Lightweight Prototype (with buffers) ===
-        data.addRows([
-          ['J1', 'Literature Review (FL, IDS, IoMT, XAI)', 'Research', toDate(2026,1,1), toDate(2026,2,28), null, 100, null],
-          ['J2', 'Problem Definition & Dataset Selection', 'Research', toDate(2026,2,15), toDate(2026,4,15), null, 90, 'J1'],
-          ['J3', 'Architecture Design of Lightweight FL-IDS', 'Design', toDate(2026,4,1), toDate(2026,6,15), null, 75, 'J2'],
-          ['J4', 'Prototype v1 Implementation', 'Development', toDate(2026,6,1), toDate(2026,8,15), null, 60, 'J3'],
-          ['J5', 'Preliminary Evaluation & Risk Buffer', 'Evaluation', toDate(2026,7,15), toDate(2026,10,15), null, 50, 'J4'],
-          ['J6', 'Year 1 Report + Conference Paper #1 Draft', 'Publication', toDate(2026,10,1), toDate(2026,12,31), null, 40, 'J5'],
-          ['J6a', 'Yearly Committee Review / Feedback', 'Milestone', toDate(2026,12,15), toDate(2026,12,31), null, 0, 'J6']
-        ]);
-
-        // === Year 2: Secure & Explainable FL (with overlapping & KPIs) ===
-        data.addRows([
-          ['J7', 'Robust Aggregation & Poisoning Defense Design', 'Development', toDate(2027,1,1), toDate(2027,2,28), null, 0, 'J6a'],
-          ['J8', 'Secure FL Integration & Initial Experiments', 'Development', toDate(2027,2,15), toDate(2027,4,15), null, 0, 'J7'],
-          ['J9', 'Explainable Module (XAI) Integration', 'Development', toDate(2027,4,1), toDate(2027,6,15), null, 0, 'J8'],
-          ['J10', 'Robustness & Interpretability Experiments', 'Evaluation', toDate(2027,5,15), toDate(2027,8,15), null, 0, 'J9'],
-          ['J11', 'Conference Paper #2 Drafting & Submission', 'Publication', toDate(2027,7,1), toDate(2027,10,1), null, 0, 'J10'],
-          ['J12', 'Mid-Term Doctoral Evaluation', 'Milestone', toDate(2027,10,15), toDate(2027,11,15), null, 0, 'J11'],
-          ['J12a', 'Model Architecture & Documentation', 'Milestone', toDate(2027,11,16), toDate(2027,12,31), null, 0, 'J12']
-        ]);
-
-        // === Year 3: Validation, Dissemination & Continuous Monitoring ===
-        data.addRows([
-          ['J13', 'Full Experiments on IoMT & Healthcare Data', 'Evaluation', toDate(2028,1,1), toDate(2028,3,31), null, 0, 'J12a'],
-          ['J14', 'Result Analysis, Benchmarking & Continuous Research Monitoring', 'Research', toDate(2028,2,1), toDate(2028,4,30), null, 0, 'J13'],
-          ['J15', 'Comparison with State-of-the-Art Models', 'Research', toDate(2028,4,1), toDate(2028,6,15), null, 0, 'J14'],
-          ['J16', 'Q2 Journal Article Writing & Submission', 'Publication', toDate(2028,6,1), toDate(2028,8,15), null, 0, 'J15'],
-          ['J17', 'Thesis Manuscript Preparation', 'Publication', toDate(2028,8,1), toDate(2028,10,31), null, 0, 'J16'],
-          ['J18', 'PhD Defense Preparation & Presentation', 'Milestone', toDate(2028,11,1), toDate(2028,12,31), null, 0, 'J17'],
-          ['J19', 'Continuous Monitoring of New Research & Publications', 'Research', toDate(2026,1,1), toDate(2028,12,31), null, 0, null]
-        ]);
-
-        // === Color mapping for each resource type ===
-        var resourceColors = {
-          'Research': '#2196F3',     // Blue
-          'Design': '#673AB7',       // Purple
-          'Development': '#009688',  // Teal
-          'Evaluation': '#757575',   // Gray
-          'Publication': '#4CAF50',  // Green
-          'Milestone': '#FF9800'     // Orange
-        };
-
-        var colors = Object.values(resourceColors);
-        var uniqueResources = Object.keys(resourceColors);
-
-        // === Gantt chart options ===
-        var options = {
-          height: 1100,
-          gantt: {
-            trackHeight: 30,
-            barCornerRadius: 4,
-            criticalPathEnabled: true,
-            criticalPathStyle: { stroke: '#e64a19', strokeWidth: 5 },
-            labelStyle: { fontName: "Arial", fontSize: 13 },
-            innerGridTrack: { fill: '#f9f9f9' },
-            innerGridDarkTrack: { fill: '#eeeeee' },
-            palette: colors.map((color, i) => ({
-              color: color,
-              dark: color,
-              light: color,
-              from: uniqueResources[i]
-            }))
-          }
-        };
-
-        var chart = new google.visualization.Gantt(document.getElementById('chart_div'));
-        chart.draw(data, options);
-      }
-    </script>
-  </head>
-
-  <body>
-    <h2>PhD 3-Year Gantt Plan : Toward Lightweight, Secure, and Explainable Federated Learning for Intrusion Detection in the IoMT Network — Wadie Kadri — Supervisor : Maha Charfeddine </h2>
-    <div id="chart_div"></div>
-
-    <!-- Legend & Strategic Highlights -->
-    <br>
-    <b>Legend:</b> 
-    <span style="color:#2196F3">■ Research</span> &nbsp;
-    <span style="color:#673AB7">■ Design</span> &nbsp;
-    <span style="color:#009688">■ Development</span> &nbsp;
-    <span style="color:#757575">■ Evaluation</span> &nbsp;
-    <span style="color:#4CAF50">■ Publication</span> &nbsp;
-    <span style="color:#FF9800">■ Milestone</span>
-
-    <br><br>
-    <b>Strategic Highlights & Annotations:</b>
-    <ul style="font-size:13px; line-height:1.4;">
-      <li><b>Risk Buffers:</b> for evaluation & integration phases to account for failed experiments or dataset limitations.</li>
-      <li><b>Parallel Tracks:</b> Continuous monitoring of research & publications(runs across all 3 years to stay updated on latest findings.</li>
-      <li><b>Critical Path in orange:</b> Sequential dependencies: Literature → Problem → Design → Prototype → Evaluation → Publication.</li>
-      <li><b>Safe Overlaps:</b> Experiments and monitoring tasks overlap strategically to reduce idle periods and optimize timeline efficiency.</li>
-      <li><b>Continuous Research Monitoring:</b> Ensures my thesis remains aligned with evolving Q1/Q2-level research and avoids obsolescence.</li>
-      
-    </ul>
-	
-	<!-- KPIs Table -->
-    <br><br>
-    <b>Key Performance Indicators (KPIs) per Year:</b>
-    <table border="1" cellpadding="6" cellspacing="0" style="border-collapse:collapse; font-size:13px; width:100%;">
-      <thead style="background-color:#f0f0f0;">
-        <tr>
-          <th>Year</th>
-          <th>Focus Areas</th>
-          <th>KPIs / Targets</th>
-          <th>Deliverables</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td>2026 </td>
-          <td>Foundations & Lightweight Prototype</td>
-          <td>
-            • Prototype v1 performance ≥ "to define" accuracy<br>
-            • Dataset readiness and preprocessing complete<br>
-            • First conference paper draft completed
-          </td>
-          <td>Literature review, dataset selection, prototype v1, Conf Paper 1 Draft, Yearly Review</td>
-        </tr>
-        <tr>
-          <td>2027 </td>
-          <td>Secure & Explainable FL</td>
-          <td>
-            • Robustness improvement ≥ "to define" against poisoning attacks<br>
-            • Interpretability / XAI score ≥ "to define"<br>
-            • Conference Paper 2 submitted on time
-          </td>
-          <td>Robust aggregation module, Secure FL integration, XAI module, Conf Paper 2, Mid-Term Evaluation, Architecture</td>
-        </tr>
-        <tr>
-          <td>2028 </td>
-          <td>Validation, Dissemination & Continuous Monitoring</td>
-          <td>
-            • Full lightweight, secure and explainable FL-IDS for IoMT evaluation completed<br>
-            • Benchmarking against SOTA models<br>
-            • Q2 Journal article submitted<br>
-            • Thesis manuscript ready for defense
-          </td>
-          <td>Full experiments, result analysis, SOTA comparison, Journal Article, Thesis Preparation, PhD Defense</td>
-        </tr>
-      </tbody>
-    </table>
-	
-  </body>
-</html>
